@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Junior 1 - Closest in Meaning Quiz</title>
+<style>
+:root {
+  --bg:#0f172a;
+  --panel:#111827;
+  --card:#1f2937;
+  --text:#f8fafc;
+  --muted:#cbd5e1;
+  --accent:#38bdf8;
+  --good:#22c55e;
+  --bad:#ef4444;
+  --line:#334155;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:linear-gradient(180deg,#0b1220,#111827);
+  color:var(--text);
+  min-height:100vh;
+}
+.wrap{max-width:900px;margin:auto;padding:24px}
+.header{
+  display:flex;gap:16px;justify-content:space-between;align-items:flex-start;
+  margin-bottom:18px;flex-wrap:wrap
+}
+h1{font-size:clamp(26px,4vw,42px);margin:0 0 8px}
+.subtitle{color:var(--muted);font-size:16px;line-height:1.5}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.badge{
+  background:#0b1220;border:1px solid var(--line);padding:9px 12px;border-radius:12px;
+  font-weight:700
+}
+.progress{height:12px;background:#0b1220;border-radius:999px;overflow:hidden;border:1px solid var(--line);margin:14px 0 24px}
+.progress>div{height:100%;background:var(--accent);width:0%;transition:.25s}
+.card{
+  background:rgba(31,41,55,.96);border:1px solid var(--line);border-radius:20px;
+  padding:24px;box-shadow:0 14px 35px rgba(0,0,0,.3)
+}
+.type{
+  color:#7dd3fc;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
+  font-size:13px;margin-bottom:10px
+}
+.qtext{font-size:clamp(24px,3.5vw,36px);line-height:1.25;font-weight:800;margin-bottom:22px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.option{
+  border:2px solid var(--line);background:#0f172a;color:var(--text);
+  padding:16px 16px;border-radius:14px;text-align:left;font-size:18px;line-height:1.35;
+  cursor:pointer;transition:.16s;min-height:82px
+}
+.option:hover{border-color:#64748b;transform:translateY(-1px)}
+.option:disabled{cursor:default;transform:none}
+.option.correct{border-color:var(--good);background:rgba(34,197,94,.12)}
+.option.wrong{border-color:var(--bad);background:rgba(239,68,68,.12)}
+.letter{
+  display:inline-flex;width:30px;height:30px;border-radius:50%;align-items:center;justify-content:center;
+  background:#1e293b;margin-right:8px;font-weight:900
+}
+.feedback{min-height:30px;margin-top:16px;font-size:18px;font-weight:700}
+.next{
+  margin-top:14px;border:none;border-radius:12px;background:var(--accent);color:#06263a;
+  font-size:18px;font-weight:900;padding:12px 18px;cursor:pointer;display:none
+}
+.startbox,.endbox{text-align:center}
+.startbox p,.endbox p{color:var(--muted);font-size:18px;line-height:1.55}
+.startbtn,.restart{
+  border:none;border-radius:14px;background:var(--accent);color:#06263a;
+  font-size:20px;font-weight:900;padding:14px 24px;cursor:pointer
+}
+.milestone{
+  margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid #475569;
+  background:#0f172a;color:#fde68a;display:none;font-weight:800
+}
+.small{font-size:14px;color:var(--muted);margin-top:12px}
+@media(max-width:700px){.options{grid-template-columns:1fr} .wrap{padding:14px} .card{padding:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1>Junior 1 – Closest in Meaning</h1>
+      <div class="subtitle">50 multiple-choice questions · 2 question types · ABCD</div>
+    </div>
+    <div class="stats">
+      <div class="badge">Question <span id="qNo">0</span>/50</div>
+      <div class="badge">Score <span id="score">0</span></div>
+      <div class="badge">Streak 🔥 <span id="streak">0</span></div>
+    </div>
+  </div>
+
+  <div class="progress"><div id="bar"></div></div>
+
+  <div class="card" id="startCard">
+    <div class="startbox">
+      <h2>Ready?</h2>
+      <p>
+        Type 1: <b>Phrase → Meaning</b><br>
+        Type 2: <b>Meaning → Phrase</b><br><br>
+        Consecutive correct answers unlock different sound effects at
+        <b>5, 10, 20 and 30</b>.
+      </p>
+      <button class="startbtn" id="startBtn">Start Quiz</button>
+      <div class="small">Tip: sound will work after you press Start.</div>
+    </div>
+  </div>
+
+  <div class="card" id="quizCard" style="display:none">
+    <div class="type" id="typeLabel"></div>
+    <div class="qtext" id="qText"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="milestone" id="milestone"></div>
+    <button class="next" id="nextBtn">Next Question →</button>
+  </div>
+
+  <div class="card" id="endCard" style="display:none">
+    <div class="endbox">
+      <h2>Quiz Completed</h2>
+      <p id="finalText"></p>
+      <button class="restart" onclick="location.reload()">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [{"type": 1, "prompt": "under the weather", "options": ["feeling sick", "feeling worried about the weather", "feeling cold because of rain", "feeling tired after working outdoors"], "answer": 0}, {"type": 1, "prompt": "put on your thinking cap", "options": ["to remember something you already know", "to make a quick decision without thinking", "to start thinking seriously", "to stop thinking about a difficult problem"], "answer": 2}, {"type": 1, "prompt": "have a word with someone", "options": ["to tell everyone about someone", "to talk to someone briefly", "to send a long message to someone", "to argue seriously with someone"], "answer": 1}, {"type": 1, "prompt": "get the hang of it", "options": ["to explain something to another person", "to finish something without help", "to learn how to do something", "to become tired of doing something"], "answer": 2}, {"type": 1, "prompt": "bite the bullet", "options": ["to complain about a difficult situation", "to face a difficult situation bravely", "to avoid a difficult situation completely", "to solve a problem by asking someone else"], "answer": 1}, {"type": 1, "prompt": "the apple of someone's eye", "options": ["a person someone depends on for work", "a person someone often disagrees with", "the person someone loves most and is very proud of", "a person someone has just met"], "answer": 2}, {"type": 1, "prompt": "in one ear and out the other", "options": ["to listen carefully and remember everything", "to forget information quickly", "to understand information very deeply", "to repeat information many times"], "answer": 1}, {"type": 1, "prompt": "sell like hot cakes", "options": ["to be sold at a very high price", "to be difficult to sell because demand is low", "to sell very quickly and in large quantities", "to be sold only during special events"], "answer": 2}, {"type": 1, "prompt": "take the reins", "options": ["to assume control", "to give up control of a situation", "to share responsibility equally with everyone", "to follow another person's instructions"], "answer": 0}, {"type": 1, "prompt": "bear fruit", "options": ["to require a lot of effort but give no result", "to produce good results", "to cause a new problem", "to begin an activity without planning"], "answer": 1}, {"type": 1, "prompt": "jump to conclusions", "options": ["to change a decision after discussing it", "to make a hasty decision without analysing all the facts", "to make a careful decision after checking all facts", "to delay a decision until more facts are available"], "answer": 1}, {"type": 1, "prompt": "dead broke", "options": ["to have no money at all", "to owe someone a small amount of money", "to have only a little money left", "to spend money very carefully"], "answer": 0}, {"type": 1, "prompt": "a mixed bag", "options": ["a group of things that are all very similar", "a collection in which everything is excellent", "a set of things arranged in perfect order", "a collection containing both good and bad things"], "answer": 3}, {"type": 1, "prompt": "hard-headed", "options": ["unable to make any decision", "easily persuaded by other people", "not flexible; stubborn", "very emotional and easily upset"], "answer": 2}, {"type": 1, "prompt": "ring a bell", "options": ["to sound familiar", "to remind someone to answer a phone call", "to be difficult to hear clearly", "to sound completely new"], "answer": 0}, {"type": 1, "prompt": "under the weather", "options": ["feeling cold because of rain", "feeling worried about the weather", "feeling tired after working outdoors", "feeling sick"], "answer": 3}, {"type": 1, "prompt": "put on your thinking cap", "options": ["to remember something you already know", "to stop thinking about a difficult problem", "to make a quick decision without thinking", "to start thinking seriously"], "answer": 3}, {"type": 1, "prompt": "have a word with someone", "options": ["to talk to someone briefly", "to argue seriously with someone", "to send a long message to someone", "to tell everyone about someone"], "answer": 0}, {"type": 1, "prompt": "get the hang of it", "options": ["to learn how to do something", "to finish something without help", "to explain something to another person", "to become tired of doing something"], "answer": 0}, {"type": 1, "prompt": "bite the bullet", "options": ["to solve a problem by asking someone else", "to complain about a difficult situation", "to face a difficult situation bravely", "to avoid a difficult situation completely"], "answer": 2}, {"type": 1, "prompt": "the apple of someone's eye", "options": ["a person someone depends on for work", "a person someone has just met", "the person someone loves most and is very proud of", "a person someone often disagrees with"], "answer": 2}, {"type": 1, "prompt": "in one ear and out the other", "options": ["to listen carefully and remember everything", "to understand information very deeply", "to repeat information many times", "to forget information quickly"], "answer": 3}, {"type": 1, "prompt": "sell like hot cakes", "options": ["to be sold only during special events", "to sell very quickly and in large quantities", "to be difficult to sell because demand is low", "to be sold at a very high price"], "answer": 1}, {"type": 1, "prompt": "take the reins", "options": ["to give up control of a situation", "to assume control", "to follow another person's instructions", "to share responsibility equally with everyone"], "answer": 1}, {"type": 1, "prompt": "bear fruit", "options": ["to produce good results", "to require a lot of effort but give no result", "to begin an activity without planning", "to cause a new problem"], "answer": 0}, {"type": 2, "prompt": "to learn how to do something", "options": ["get the hang of it", "put on your thinking cap", "bear fruit", "take the reins"], "answer": 0}, {"type": 2, "prompt": "to make a hasty decision without analysing all the facts", "options": ["bite the bullet", "jump to conclusions", "put on your thinking cap", "take the reins"], "answer": 1}, {"type": 2, "prompt": "to talk to someone briefly", "options": ["have a word with someone", "jump to conclusions", "take the reins", "ring a bell"], "answer": 0}, {"type": 2, "prompt": "to produce good results", "options": ["get the hang of it", "sell like hot cakes", "bear fruit", "take the reins"], "answer": 2}, {"type": 2, "prompt": "to start thinking seriously", "options": ["take the reins", "get the hang of it", "put on your thinking cap", "jump to conclusions"], "answer": 2}, {"type": 2, "prompt": "to assume control", "options": ["hard-headed", "take the reins", "bite the bullet", "jump to conclusions"], "answer": 1}, {"type": 2, "prompt": "feeling sick", "options": ["dead broke", "hard-headed", "ring a bell", "under the weather"], "answer": 3}, {"type": 2, "prompt": "to sell very quickly and in large quantities", "options": ["sell like hot cakes", "bear fruit", "dead broke", "a mixed bag"], "answer": 0}, {"type": 2, "prompt": "to sound familiar", "options": ["get the hang of it", "have a word with someone", "ring a bell", "in one ear and out the other"], "answer": 2}, {"type": 2, "prompt": "to forget information quickly", "options": ["put on your thinking cap", "in one ear and out the other", "ring a bell", "get the hang of it"], "answer": 1}, {"type": 2, "prompt": "not flexible; stubborn", "options": ["hard-headed", "under the weather", "take the reins", "bite the bullet"], "answer": 0}, {"type": 2, "prompt": "the person someone loves most and is very proud of", "options": ["ring a bell", "under the weather", "the apple of someone's eye", "a mixed bag"], "answer": 2}, {"type": 2, "prompt": "a collection containing both good and bad things", "options": ["the apple of someone's eye", "hard-headed", "a mixed bag", "dead broke"], "answer": 2}, {"type": 2, "prompt": "to face a difficult situation bravely", "options": ["hard-headed", "bite the bullet", "jump to conclusions", "take the reins"], "answer": 1}, {"type": 2, "prompt": "to have no money at all", "options": ["dead broke", "sell like hot cakes", "under the weather", "a mixed bag"], "answer": 0}, {"type": 2, "prompt": "to learn how to do something", "options": ["put on your thinking cap", "take the reins", "bear fruit", "get the hang of it"], "answer": 3}, {"type": 2, "prompt": "to make a hasty decision without analysing all the facts", "options": ["bite the bullet", "take the reins", "jump to conclusions", "put on your thinking cap"], "answer": 2}, {"type": 2, "prompt": "to talk to someone briefly", "options": ["ring a bell", "jump to conclusions", "take the reins", "have a word with someone"], "answer": 3}, {"type": 2, "prompt": "to produce good results", "options": ["bear fruit", "take the reins", "get the hang of it", "sell like hot cakes"], "answer": 0}, {"type": 2, "prompt": "to start thinking seriously", "options": ["put on your thinking cap", "take the reins", "get the hang of it", "jump to conclusions"], "answer": 0}, {"type": 2, "prompt": "to assume control", "options": ["jump to conclusions", "bite the bullet", "hard-headed", "take the reins"], "answer": 3}, {"type": 2, "prompt": "feeling sick", "options": ["under the weather", "ring a bell", "dead broke", "hard-headed"], "answer": 0}, {"type": 2, "prompt": "to sell very quickly and in large quantities", "options": ["sell like hot cakes", "bear fruit", "a mixed bag", "dead broke"], "answer": 0}, {"type": 2, "prompt": "to sound familiar", "options": ["have a word with someone", "ring a bell", "get the hang of it", "in one ear and out the other"], "answer": 1}, {"type": 2, "prompt": "to forget information quickly", "options": ["put on your thinking cap", "ring a bell", "in one ear and out the other", "get the hang of it"], "answer": 2}];
+let current = 0, score = 0, streak = 0, locked = false;
+let audioCtx = null;
+
+const qNo = document.getElementById('qNo');
+const scoreEl = document.getElementById('score');
+const streakEl = document.getElementById('streak');
+const bar = document.getElementById('bar');
+const quizCard = document.getElementById('quizCard');
+const startCard = document.getElementById('startCard');
+const endCard = document.getElementById('endCard');
+const qText = document.getElementById('qText');
+const typeLabel = document.getElementById('typeLabel');
+const optionsEl = document.getElementById('options');
+const feedback = document.getElementById('feedback');
+const milestone = document.getElementById('milestone');
+const nextBtn = document.getElementById('nextBtn');
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  startCard.style.display='none';
+  quizCard.style.display='block';
+  render();
+});
+
+function tone(freq, start, dur, type='sine', vol=.08) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, audioCtx.currentTime + start);
+  gain.gain.exponentialRampToValueAtTime(vol, audioCtx.currentTime + start + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + start + dur);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(audioCtx.currentTime + start);
+  osc.stop(audioCtx.currentTime + start + dur + 0.03);
+}
+
+function playCorrect() {
+  tone(660,0,.10,'sine',.05); tone(880,.10,.12,'sine',.05);
+}
+function playWrong() {
+  tone(180,0,.18,'sawtooth',.035);
+}
+function playMilestone(n) {
+  if(n===5) {
+    [523,659,784].forEach((f,i)=>tone(f,i*.09,.16,'triangle',.07));
+  } else if(n===10) {
+    [523,659,784,1047].forEach((f,i)=>tone(f,i*.075,.18,'sine',.075));
+  } else if(n===20) {
+    [392,523,659,784,1047].forEach((f,i)=>tone(f,i*.07,.20,'triangle',.08));
+  } else if(n===30) {
+    [523,659,784,1047,1319,1568].forEach((f,i)=>tone(f,i*.065,.22,'sine',.085));
+    setTimeout(()=>[784,1047,1319].forEach((f,i)=>tone(f,i*.08,.24,'triangle',.09)),450);
+  }
+}
+
+function render() {
+  locked = false;
+  feedback.textContent = '';
+  milestone.style.display='none';
+  nextBtn.style.display='none';
+  const q = questions[current];
+  qNo.textContent = current+1;
+  scoreEl.textContent = score;
+  streakEl.textContent = streak;
+  bar.style.width = ((current)/questions.length*100)+'%';
+  typeLabel.textContent = q.type===1 ? 'Type 1 · Phrase → Meaning' : 'Type 2 · Meaning → Phrase';
+  qText.textContent = q.prompt;
+  optionsEl.innerHTML='';
+  q.options.forEach((opt, i)=>{
+    const btn = document.createElement('button');
+    btn.className='option';
+    btn.innerHTML = '<span class="letter">'+String.fromCharCode(65+i)+'</span>'+opt;
+    btn.onclick=()=>answer(i, btn);
+    optionsEl.appendChild(btn);
+  });
+}
+
+function answer(choice, btn) {
+  if(locked) return;
+  locked = true;
+  const q = questions[current];
+  const buttons = [...document.querySelectorAll('.option')];
+  buttons.forEach(b=>b.disabled=true);
+  buttons[q.answer].classList.add('correct');
+
+  if(choice===q.answer) {
+    score++;
+    streak++;
+    btn.classList.add('correct');
+    feedback.textContent='✓ Correct!';
+    feedback.style.color='var(--good)';
+    playCorrect();
+
+    if([5,10,20,30].includes(streak)) {
+      playMilestone(streak);
+      milestone.textContent = '🔥 '+streak+' correct in a row! Milestone unlocked!';
+      milestone.style.display='block';
+    }
+  } else {
+    streak=0;
+    btn.classList.add('wrong');
+    feedback.textContent='✗ Not quite. The correct answer is highlighted.';
+    feedback.style.color='var(--bad)';
+    playWrong();
+  }
+
+  scoreEl.textContent=score;
+  streakEl.textContent=streak;
+  bar.style.width=((current+1)/questions.length*100)+'%';
+  nextBtn.style.display='inline-block';
+  nextBtn.textContent = current===questions.length-1 ? 'See Result →' : 'Next Question →';
+}
+
+nextBtn.addEventListener('click', ()=>{
+  current++;
+  if(current>=questions.length) finish();
+  else render();
+});
+
+function finish() {
+  quizCard.style.display='none';
+  endCard.style.display='block';
+  qNo.textContent='50';
+  bar.style.width='100%';
+  const pct = Math.round(score/questions.length*100);
+  document.getElementById('finalText').innerHTML =
+    'Score: <b>'+score+'/50 ('+pct+'%)</b><br>' +
+    'Final streak: <b>'+streak+'</b>';
+}
+</script>
+</body>
+</html>
